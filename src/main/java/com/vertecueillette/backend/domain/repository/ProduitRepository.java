@@ -1,4 +1,4 @@
-package com.vertecueillette.backend.repository;
+package com.vertecueillette.backend.domain.repository;
 
 import com.vertecueillette.backend.domain.entity.Produit;
 import org.springframework.data.jpa.repository.JpaRepository;
