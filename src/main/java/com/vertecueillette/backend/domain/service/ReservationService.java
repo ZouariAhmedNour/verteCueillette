@@ -1,7 +1,6 @@
 package com.vertecueillette.backend.domain.service;
 
-import com.vertecueillette.backend.domain.dto.ReservationDto;
-import com.vertecueillette.backend.domain.dto.ReservationViewDto;
+import com.vertecueillette.backend.domain.dto.*;
 
 import java.util.List;
 
@@ -11,11 +10,15 @@ public interface ReservationService {
 
     List<ReservationDto> getAll();
 
-    ReservationDto create(ReservationDto dto);
+    ReservationDto create(ReservationCreateRequest dto);
 
-    ReservationDto update(Integer id, ReservationDto dto);
+    ReservationDto updateStatut(Integer id, UpdateReservationStatutRequest dto);
 
     void delete(Integer id);
 
-    ReservationViewDto getProduitsByReservation(Integer idReservation);
+    ReservationDetailDto getDetailsByReservation(Integer idReservation);
+
+    ReservationDetailDto scanQr(ScanQrRequest request);
+
+    List<ReservationDto> getByUser(Integer idUser);
 }

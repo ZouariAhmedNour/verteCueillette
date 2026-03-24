@@ -1,10 +1,11 @@
-package com.vertecueillette.backend.domain.service;
+package com.vertecueillette.backend.infrastructure.qr;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import com.vertecueillette.backend.domain.service.QrCodeGenerator;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -12,7 +13,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class QrService {
+public class ZxingQrCodeGenerator implements QrCodeGenerator {
+
+    @Override
     public byte[] generateQrPng(String text, int width, int height) {
         try {
             QRCodeWriter qrWriter = new QRCodeWriter();

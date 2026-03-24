@@ -1,14 +1,13 @@
 package com.vertecueillette.backend.domain.dto;
 
-import lombok.Data;
-
+import com.vertecueillette.backend.domain.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class RegisterRequest {
+public class CreateUserRequest {
 
     @NotBlank
     private String nom;
@@ -24,6 +23,6 @@ public class RegisterRequest {
     @Size(min = 6)
     private String password;
 
-    @NotBlank
     private String ville;
+    private Role role = Role.CLIENT;
 }

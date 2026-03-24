@@ -1,8 +1,8 @@
 package com.vertecueillette.backend.domain.service;
 
+import com.vertecueillette.backend.domain.dto.CreateUserRequest;
+import com.vertecueillette.backend.domain.dto.UpdateUserRequest;
 import com.vertecueillette.backend.domain.dto.UserDto;
-
-import java.util.List;
 
 
 public interface UserService {
@@ -11,9 +11,9 @@ public interface UserService {
 
     UserDto getUserByEmail(String email);
 
-    UserDto createUser(UserDto dto);
+    UserDto createUser(CreateUserRequest dto);
 
-    UserDto updateUser(Integer id, UserDto dto);
+    UserDto updateUser(Integer id, UpdateUserRequest dto);
 
     void deleteUser(Integer id);
 }

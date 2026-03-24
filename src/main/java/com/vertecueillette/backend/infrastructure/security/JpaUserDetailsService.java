@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,11 +23,7 @@ public class JpaUserDetailsService implements UserDetailsService, UserDetailsPas
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé : " + email));
 
-        // Assurer que role porte la forme "ROLE_X" si besoin
-        String role = user.getRole();
-        if (role != null && !role.startsWith("ROLE_")) {
-            role = "ROLE_" + role;
-        }
+        String role = "ROLE_" + user.getRole().name();
 
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
@@ -41,6 +38,7 @@ public class JpaUserDetailsService implements UserDetailsService, UserDetailsPas
                 .orElseThrow();
 
         u.setPassword(newPassword);
+        u.setPassChangedAt(LocalDateTime.now());
         userRepository.save(u);
 
         return loadUserByUsername(u.getEmail());

@@ -1,9 +1,13 @@
 package com.vertecueillette.backend.presentation.controllers;
 
+import com.vertecueillette.backend.domain.dto.CreateUserRequest;
+import com.vertecueillette.backend.domain.dto.UpdateUserRequest;
 import com.vertecueillette.backend.domain.dto.UserDto;
 import com.vertecueillette.backend.domain.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -15,46 +19,35 @@ public class UserController {
 
     private final UserService userService;
 
+    //@PreAuthorize("hasAnyRole('ADMIN','VENDEUR')")
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    // GET - Find by Email
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/email/{email}")
     public ResponseEntity<UserDto> getByEmail(@PathVariable String email) {
         return ResponseEntity.ok(userService.getUserByEmail(email));
     }
 
-    // POST - Create
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody UserDto dto) {
+    public ResponseEntity<UserDto> create(@Valid @RequestBody CreateUserRequest dto) {
         UserDto created = userService.createUser(dto);
-        return ResponseEntity.created(URI.create("/api/users/" + created.getIdUser()))
-                .body(created);
+        return ResponseEntity.created(URI.create("/api/users/" + created.getIdUser())).body(created);
     }
-    // PUT - Update
+
+    @PreAuthorize("hasAnyRole('ADMIN','CLIENT')")
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> update(
-            @PathVariable Integer id,
-            @RequestBody UserDto dto
-    ) {
+    public ResponseEntity<UserDto> update(@PathVariable Integer id, @Valid @RequestBody UpdateUserRequest dto) {
         return ResponseEntity.ok(userService.updateUser(id, dto));
     }
 
-    // DELETE - Delete
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
-
-
-
-
-
-
-
-
 }

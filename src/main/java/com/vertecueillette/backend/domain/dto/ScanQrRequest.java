@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class CategorieDto {
-    private Integer idCategorie;
-
+public class ScanQrRequest {
     @NotBlank
-    private String nomCategorie;
+    private String qrContent;
 }

@@ -1,5 +1,7 @@
 package com.vertecueillette.backend.application.service;
 
+import com.vertecueillette.backend.domain.dto.CreateUserRequest;
+import com.vertecueillette.backend.domain.dto.UpdateUserRequest;
 import com.vertecueillette.backend.domain.dto.UserDto;
 import com.vertecueillette.backend.domain.entity.User;
 import com.vertecueillette.backend.domain.exception.NotFoundException;
@@ -7,8 +9,11 @@ import com.vertecueillette.backend.domain.repository.UserRepository;
 import com.vertecueillette.backend.domain.service.UserService;
 import com.vertecueillette.backend.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDto getUserById(Integer id) {
@@ -25,9 +31,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto createUser(UserDto dto) {
-        User user = userMapper.toEntity(dto);
-        user.setIdUser(null); // sécurité
+    public UserDto createUser(CreateUserRequest dto) {
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email déjà utilisé");
+        }
+
+        User user = new User();
+        user.setNom(dto.getNom());
+        user.setPrenom(dto.getPrenom());
+        user.setEmail(dto.getEmail());
+        user.setVille(dto.getVille());
+        user.setRole(dto.getRole());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+
         return userMapper.toDto(userRepository.save(user));
     }
 
@@ -47,21 +63,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUser(Integer id, UserDto dto) {
+    public UserDto updateUser(Integer id, UpdateUserRequest dto) {
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Utilisateur non trouvé pour mise à jour : " + id));
 
-        // mise à jour simple → domaine simple
-        existing.setNom(dto.getNom());
-        existing.setPrenom(dto.getPrenom());
-        existing.setEmail(dto.getEmail());
-        existing.setPassword(dto.getPassword());
-        existing.setVille(dto.getVille());
-        existing.setRole(dto.getRole());
-        existing.setDateNaiss(dto.getDateNaiss());
-        existing.setNumTel(dto.getNumTel());
-        existing.setAvatarUrl(dto.getAvatarUrl());
-        existing.set_verified(dto.is_verified());
+        if (dto.getNom() != null) existing.setNom(dto.getNom());
+        if (dto.getPrenom() != null) existing.setPrenom(dto.getPrenom());
+        if (dto.getEmail() != null) existing.setEmail(dto.getEmail());
+        if (dto.getVille() != null) existing.setVille(dto.getVille());
+        if (dto.getRole() != null) existing.setRole(dto.getRole());
+        if (dto.getDateNaiss() != null) existing.setDateNaiss(dto.getDateNaiss());
+        if (dto.getNumTel() != null) existing.setNumTel(dto.getNumTel());
+        if (dto.getAvatarUrl() != null) existing.setAvatarUrl(dto.getAvatarUrl());
+
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(dto.getPassword()));
+            existing.setPassChangedAt(LocalDateTime.now());
+        }
 
         return userMapper.toDto(userRepository.save(existing));
     }

@@ -4,6 +4,7 @@ import com.vertecueillette.backend.domain.dto.AuthenticationRequest;
 import com.vertecueillette.backend.domain.dto.AuthenticationResponse;
 import com.vertecueillette.backend.domain.dto.RegisterRequest;
 import com.vertecueillette.backend.domain.entity.User;
+import com.vertecueillette.backend.domain.enums.Role;
 import com.vertecueillette.backend.domain.exception.NotFoundException;
 import com.vertecueillette.backend.domain.repository.UserRepository;
 import com.vertecueillette.backend.domain.service.AuthService;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -38,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setVille(request.getVille());
-        user.setRole("CLIENT"); // par défaut, adapte si besoin
+        user.setRole(Role.CLIENT); // par défaut, adapte si besoin
 
         User saved = userRepository.save(user);
 

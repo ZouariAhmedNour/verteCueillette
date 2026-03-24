@@ -9,12 +9,13 @@ import com.vertecueillette.backend.domain.repository.ProduitRepository;
 import com.vertecueillette.backend.domain.service.ProduitService;
 import com.vertecueillette.backend.mapper.ProduitMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProduitServiceImpl implements ProduitService {
 
     private final ProduitRepository produitRepository;
@@ -29,31 +30,31 @@ public class ProduitServiceImpl implements ProduitService {
     }
 
     @Override
-    public List<ProduitDto> getAll() {
-        return produitRepository.findAll()
-                .stream()
-                .map(mapper::toDto)
-                .toList();
+    public Page<ProduitDto> getAll(int page, int size, String sortBy, String sortDir) {
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by("desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy));
+
+        return produitRepository.findAll(pageable).map(mapper::toDto);
     }
 
     @Override
     public ProduitDto create(ProduitDto dto) {
-
         Produit produit = mapper.toEntity(dto);
 
-        // vérifier que la catégorie existe
         Categorie cat = categorieRepository.findById(dto.getIdCategorie())
                 .orElseThrow(() -> new NotFoundException("Catégorie non trouvée : " + dto.getIdCategorie()));
 
         produit.setCategorie(cat);
-        produit.setIdProduit(null); // sécurité
+        produit.setIdProduit(null);
 
-        return mapper.toDto(produitRepository.save(produit));
+        Produit saved = produitRepository.save(produit);
+        log.info("Produit créé id={}, nom={}", saved.getIdProduit(), saved.getNomProduit());
+
+        return mapper.toDto(saved);
     }
 
     @Override
     public ProduitDto update(Integer id, ProduitDto dto) {
-
         Produit existing = produitRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Produit non trouvé pour mise à jour : " + id));
 
@@ -64,7 +65,6 @@ public class ProduitServiceImpl implements ProduitService {
         existing.setQuantite(dto.getQuantite());
         existing.setDisponibilite(dto.isDisponibilite());
 
-        // mise à jour de la catégorie si changée
         if (dto.getIdCategorie() != null) {
             Categorie cat = categorieRepository.findById(dto.getIdCategorie())
                     .orElseThrow(() -> new NotFoundException("Catégorie non trouvée : " + dto.getIdCategorie()));
@@ -82,4 +82,19 @@ public class ProduitServiceImpl implements ProduitService {
         produitRepository.deleteById(id);
     }
 
+    @Override
+    public Page<ProduitDto> getByCategorie(Integer idCategorie, int page, int size, String sortBy, String sortDir) {
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by("desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy));
+
+        return produitRepository.findByCategorie_IdCategorie(idCategorie, pageable).map(mapper::toDto);
+    }
+
+    @Override
+    public Page<ProduitDto> search(String keyword, int page, int size, String sortBy, String sortDir) {
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by("desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy));
+
+        return produitRepository.findByNomProduitContainingIgnoreCase(keyword, pageable).map(mapper::toDto);
+    }
 }

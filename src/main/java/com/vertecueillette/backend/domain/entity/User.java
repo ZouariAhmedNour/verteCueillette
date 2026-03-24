@@ -1,13 +1,12 @@
 package com.vertecueillette.backend.domain.entity;
 
+import com.vertecueillette.backend.domain.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.cglib.core.Local;
-
 import java.time.LocalDate;
-
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -30,15 +29,16 @@ public class User {
 
     private String ville;
 
-    private String role = "CLIENT";
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.CLIENT;
 
     private LocalDate dateNaiss;
 
     private String numTel;
 
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
-    private LocalDate passChangedAt;
+    private LocalDateTime passChangedAt;
 
     private String avatarUrl;
 
