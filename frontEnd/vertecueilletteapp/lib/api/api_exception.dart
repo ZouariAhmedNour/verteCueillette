@@ -1,0 +1,17 @@
+class ApiException implements Exception {
+  final int? statusCode;
+  final String message;
+  final dynamic data;
+
+  ApiException({
+    required this.message,
+    this.statusCode,
+    this.data,
+  });
+
+  @override
+  String toString() {
+    if (statusCode == null) return message;
+    return '[$statusCode] $message';
+  }
+}
