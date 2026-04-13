@@ -1,22 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vertecueilletteapp/api/session_manager.dart';
+import '../models/user_model.dart';
 import '../providers/profile_provider.dart';
 import '../theme/app_colors.dart';
 
-class EditProfileScreen extends ConsumerWidget {
+class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  bool _hydrated = false;
+  bool _isLoggingOut = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fullNameController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  void _fillOnce(UserModel user) {
+    if (_hydrated) return;
+    _fullNameController.text = '${user.nom} ${user.prenom}';
+    _emailController.text = user.email;
+    _phoneController.text = user.numTel ?? '';
+    _hydrated = true;
+  }
+
+  Future<void> _logout() async {
+  if (_isLoggingOut) return;
+
+  setState(() => _isLoggingOut = true);
+
+  try {
+    SessionManager.clear();
+
+    ref.invalidate(profileProvider);
+
+    if (!mounted) return;
+    context.go('/sign-in');
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erreur logout : $e')),
+    );
+  } finally {
+    if (mounted) {
+      setState(() => _isLoggingOut = false);
+    }
+  }
+}
+
+  @override
+  Widget build(BuildContext context) {
     final profile = ref.watch(profileProvider);
 
     return Scaffold(
       body: SafeArea(
         child: profile.when(
           data: (user) {
-            final fullNameController = TextEditingController(text: '${user.nom} ${user.prenom}');
-            final emailController = TextEditingController(text: user.email);
-            final phoneController = TextEditingController(text: user.numTel ?? '+1(555) 000-1234');
+            _fillOnce(user);
 
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
@@ -25,12 +85,18 @@ class EditProfileScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back, size: 28)),
+                      IconButton(
+                        onPressed: () => context.go('/home'),
+                        icon: const Icon(Icons.arrow_back, size: 28),
+                      ),
                       const Expanded(
                         child: Center(
                           child: Text(
                             'Edit Profile',
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
                       ),
@@ -39,7 +105,11 @@ class EditProfileScreen extends ConsumerWidget {
                         backgroundColor: AppColors.lightGreen,
                         child: IconButton(
                           onPressed: () {},
-                          icon: const Icon(Icons.check, color: AppColors.primary, size: 28),
+                          icon: const Icon(
+                            Icons.check,
+                            color: AppColors.primary,
+                            size: 28,
+                          ),
                         ),
                       ),
                     ],
@@ -67,7 +137,11 @@ class EditProfileScreen extends ConsumerWidget {
                             backgroundColor: AppColors.primary,
                             child: IconButton(
                               onPressed: () {},
-                              icon: const Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20),
+                              icon: const Icon(
+                                Icons.camera_alt_outlined,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
@@ -78,64 +152,88 @@ class EditProfileScreen extends ConsumerWidget {
                   Center(
                     child: Text(
                       '${user.nom} ${user.prenom}',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Center(
-                    child: Text(
-                      'Premium Member',
-                      style: TextStyle(color: AppColors.primary, fontSize: 16),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 28),
                   const Text(
                     'PERSONAL INFORMATION',
-                    style: TextStyle(color: AppColors.textGrey, fontSize: 16, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      color: AppColors.textGrey,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 18),
-                  const Text('Full Name', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  const Text(
+                    'Full Name',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
                   const SizedBox(height: 10),
-                  _profileField(fullNameController),
+                  _profileField(_fullNameController),
                   const SizedBox(height: 20),
-                  const Text('Email Address', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  const Text(
+                    'Email Address',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
                   const SizedBox(height: 10),
-                  _profileField(emailController),
+                  _profileField(_emailController),
                   const SizedBox(height: 20),
-                  const Text('Phone Number', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  const Text(
+                    'Phone Number',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
                   const SizedBox(height: 10),
-                  _profileField(phoneController),
+                  _profileField(_phoneController),
                   const SizedBox(height: 28),
                   const Text(
                     'ACCOUNT ACTIONS',
-                    style: TextStyle(color: AppColors.textGrey, fontSize: 16, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      color: AppColors.textGrey,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 18),
-                  _actionTile(Icons.receipt_long_outlined, 'Order History'),
-                  const SizedBox(height: 14),
-                  _actionTile(Icons.settings_outlined, 'App Settings'),
-                  const SizedBox(height: 14),
-                  _actionTile(Icons.notifications_none, 'Notifications', trailing: _newBadge()),
+                  _actionTile(
+                    icon: Icons.receipt_long_outlined,
+                    title: 'Order History',
+                    onTap: () => context.go('/collections'),
+                  ),
                   const SizedBox(height: 28),
-                  Container(
-                    width: double.infinity,
-                    height: 62,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFF4CACA), width: 2),
-                      borderRadius: BorderRadius.circular(24),
+                  InkWell(
+                    onTap: _isLoggingOut ? null : _logout,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: double.infinity,
+                      height: 62,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color(0xFFF4CACA),
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.logout, color: AppColors.danger),
+                          const SizedBox(width: 10),
+                          Text(
+                            _isLoggingOut ? 'Logging out...' : 'Log Out',
+                            style: const TextStyle(
+                              color: AppColors.danger,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.logout, color: AppColors.danger),
-                        SizedBox(width: 10),
-                        Text(
-                          'Log Out',
-                          style: TextStyle(color: AppColors.danger, fontSize: 18, fontWeight: FontWeight.w800),
-                        )
-                      ],
-                    ),
-                  )
+                  ),
                 ],
               ),
             );
@@ -143,17 +241,6 @@ class EditProfileScreen extends ConsumerWidget {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Erreur: $e')),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: const Color(0xFF97A4B8),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'HOME'),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'SEARCH'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'ORDERS'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'PROFILE'),
-        ],
       ),
     );
   }
@@ -176,43 +263,39 @@ class EditProfileScreen extends ConsumerWidget {
     );
   }
 
-  static Widget _actionTile(IconData icon, String title, {Widget? trailing}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.primary, size: 28),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-          ),
-          trailing ??
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.textGrey,
+  static Widget _actionTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.primary, size: 28),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _newBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFD8F2CB),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: const Text(
-        '3 New',
-        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textGrey,
+            ),
+          ],
+        ),
       ),
     );
   }
