@@ -43,7 +43,14 @@ public class AuthServiceImpl implements AuthService {
         User saved = userRepository.save(user);
 
         String token = jwtService.generateToken(saved);
-        return new AuthenticationResponse(token);
+        return new AuthenticationResponse(
+                token,
+                saved.getIdUser(),
+                saved.getNom(),
+                saved.getPrenom(),
+                saved.getEmail(),
+                saved.getRole().name()
+        );
     }
 
     @Override
@@ -57,6 +64,13 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new NotFoundException("Utilisateur non trouvé"));
 
         String token = jwtService.generateToken(user);
-        return new AuthenticationResponse(token);
+        return new AuthenticationResponse(
+                token,
+                user.getIdUser(),
+                user.getNom(),
+                user.getPrenom(),
+                user.getEmail(),
+                user.getRole().name()
+        );
     }
 }

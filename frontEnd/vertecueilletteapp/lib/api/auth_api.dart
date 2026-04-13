@@ -3,12 +3,6 @@ import 'package:vertecueilletteapp/api/session_manager.dart';
 import 'package:vertecueilletteapp/models/auth_response_model.dart';
 
 class AuthApi {
-  /// POST /auth/authenticate
-  /// 200 : connexion réussie, token JWT renvoyé
-  /// 400 : payload invalide
-  /// 401 : email ou mot de passe incorrect
-  /// 403 : accès refusé / compte bloqué
-  /// 500 : erreur serveur
   Future<AuthResponseModel> login({
     required String email,
     required String password,
@@ -26,18 +20,12 @@ class AuthApi {
     );
 
     if (auth.token.isNotEmpty) {
-      SessionManager.setToken(auth.token);
+      SessionManager.setSession(auth);
     }
 
     return auth;
   }
 
-  /// POST /auth/register
-  /// 200 ou 201 : inscription réussie
-  /// 400 : données invalides
-  /// 409 : email déjà utilisé
-  /// 422 : erreur métier / validation
-  /// 500 : erreur serveur
   Future<AuthResponseModel> register({
     required String nom,
     required String prenom,
@@ -61,7 +49,7 @@ class AuthApi {
     );
 
     if (auth.token.isNotEmpty) {
-      SessionManager.setToken(auth.token);
+      SessionManager.setSession(auth);
     }
 
     return auth;
