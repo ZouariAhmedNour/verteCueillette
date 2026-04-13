@@ -90,7 +90,7 @@ class HomeScreen extends ConsumerWidget {
                   const Spacer(),
                   TextButton(
                     onPressed: () =>
-                      context.go('/collections'),
+                      context.go('/reservations'), // Example navigation to reservations  
                     child: const Text(
                       'View all',
                       style: TextStyle(
